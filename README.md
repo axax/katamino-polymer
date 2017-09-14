@@ -1,38 +1,19 @@
-# Polymer App Toolbox - Starter Kit
+# Katamino Polymer
 
-[![Build Status](https://travis-ci.org/PolymerElements/polymer-starter-kit.svg?branch=master)](https://travis-ci.org/PolymerElements/polymer-starter-kit)
+Katamino is a superb puzzle and a challenging game.
 
-This template is a starting point for building apps using a drawer-based
-layout. The layout is provided by `app-layout` elements.
+## How the game works
 
-This template, along with the `polymer-cli` toolchain, also demonstrates use
-of the "PRPL pattern" This pattern allows fast first delivery and interaction with
-the content at the initial route requested by the user, along with fast subsequent
-navigation by pre-caching the remaining components required by the app and
-progressively loading them on-demand as the user navigates through the app.
+The game consists of 12 different pieces constructed of right angled blocks so each piece is made of 5 "squares". (Think Tetris pieces, but 5 squares instead of 4.)
 
-The PRPL pattern, in a nutshell:
+The gameboard is constructed with a movable divider so one can take sets of 4 up to the whole set of 12 pieces and form them into a 5 block by X rectangle. (Where X = the number of wood blocks in your set.)
 
-* **Push** components required for the initial route
-* **Render** initial route ASAP
-* **Pre-cache** components for remaining routes
-* **Lazy-load** and progressively upgrade next routes on-demand
+The two or three player strategy game is accomplished on a square board divided into 64 smaller squares. Players take turns to place a piece on the gameboard. The first player who cannot place a piece anymore loses. (Similar to Blokus)
 
-### Migrating from Polymer Starter Kit v1?
+The two player puzzle game mode is accomplished by dividing the board into two sections, each player chooses five blocks and are also given 4 small "filler" blocks of 1 and 2 squares. The first one to fit all their blocks perfectly into their half of the rectangle board, wins.
 
-[Check out our blog post that covers what's changed in PSK2 and how to migrate!](https://www.polymer-project.org/1.0/blog/2016-08-18-polymer-starter-kit-or-polymer-cli.html)
 
-### Quickstart
-
-We've recorded a Polycast to get you up and running with PSK2 fast!
-
-<p align="center">
-  <a href="https://www.youtube.com/watch?v=HgJ0XCyBwzY&list=PLNYkxOF6rcIDdS7HWIC_BYRunV6MHs5xo&index=10">
-    <img src="https://img.youtube.com/vi/HgJ0XCyBwzY/0.jpg" alt="Polymer Starter Kit 2 video">
-  </a>
-</p>
-
-### Setup
+## Setup
 
 ##### Prerequisites
 
@@ -40,16 +21,20 @@ First, install [Polymer CLI](https://github.com/Polymer/polymer-cli) using
 [npm](https://www.npmjs.com) (we assume you have pre-installed [node.js](https://nodejs.org)).
 
     npm install -g polymer-cli
-
+    
 Second, install [Bower](https://bower.io/) using [npm](https://www.npmjs.com)
 
     npm install -g bower
+    
+##### Initialize project from git
 
-##### Initialize project from template
+Clone this repo
 
-    mkdir my-app
-    cd my-app
-    polymer init polymer-2-starter-kit
+    git clone https://github.com/axax/katamino-polymer.git
+
+Run bower install 
+
+    bower install
 
 ### Start the development server
 
@@ -64,7 +49,7 @@ The `polymer build` command builds your Polymer application for production, usin
 
 You can configure your `polymer.json` file to create multiple builds. This is necessary if you will be serving different builds optimized for different browsers. You can define your own named builds, or use presets. See the documentation on [building your project for production](https://www.polymer-project.org/2.0/toolbox/build-for-production) for more information.
 
-The Polymer Starter Kit is configured to create three builds using [the three supported presets](https://www.polymer-project.org/2.0/toolbox/build-for-production#build-presets):
+Katamino Polymer is configured to create three builds using [the three supported presets](https://www.polymer-project.org/2.0/toolbox/build-for-production#build-presets):
 
 ```
 "builds": [
@@ -114,13 +99,3 @@ If running Windows you will need to set the following environment variables:
 - LAUNCHPAD_CHROME
 
 Read More here [daffl/launchpad](https://github.com/daffl/launchpad#environment-variables-impacting-local-browsers-detection)
-
-### Adding a new view
-
-You can extend the app by adding more views that will be demand-loaded
-e.g. based on the route, or to progressively render non-critical sections of the
-application. Each new demand-loaded fragment should be added to the list of
-`fragments` in the included `polymer.json` file. This will ensure those
-components and their dependencies are added to the list of pre-cached components
-and will be included in the build.
-# katamino-polymer
