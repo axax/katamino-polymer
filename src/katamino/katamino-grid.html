@@ -1,0 +1,61 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="katamino-grid">
+    <template>
+        <style include="shared-styles">
+            :host {
+                display: block;
+
+                padding: 10px;
+            }
+        </style>
+
+        <svg width$="[[gridWidth]]" height$="[[gridHeight]]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="smallGrid" width="5" height="5"
+                         patternUnits="userSpaceOnUse">
+                    <path d="M 8 0 L 0 0 0 8" fill="none" stroke="gray" stroke-width="0.1"/>
+                </pattern>
+                <pattern id="grid" width$="[[spec.wide]]" height$="[[spec.wide]]" patternUnits="userSpaceOnUse">
+                    <rect width="80" height="80" fill="url(#smallGrid)"/>
+                    <path d="M 80 0 L 0 0 0 80" fill="none" stroke="gray" stroke-width="1"/>
+                </pattern>
+            </defs>
+
+            <rect width="100%" height="100%" fill="url(#grid)"/>
+        </svg>
+
+    </template>
+
+    <script>
+        class KataminoGrid extends Polymer.Element {
+            static get is() {
+                return 'katamino-grid';
+            }
+
+            static get properties() {
+                return {
+                    spec: Object,
+                    gridWidth: Number,
+                    gridHeight: Number,
+                }
+            }
+
+            static get observers() {
+                return [
+                    // Observer method name, followed by a list of dependencies, in parenthesis
+                    '_specChanged(spec.*)'
+                ]
+            }
+
+            _specChanged() {
+                this.set('gridWidth', (this.spec.nrPerRow * this.spec.wide)+1 );
+                this.set('gridHeight', (this.spec.nrOfRows * this.spec.wide)+1 );
+            }
+
+        }
+
+        window.customElements.define(KataminoGrid.is, KataminoGrid);
+    </script>
+</dom-module>
