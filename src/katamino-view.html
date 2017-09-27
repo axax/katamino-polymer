@@ -27,6 +27,19 @@
                 @apply --layout-flex;
             }
 
+            katamino-figure{
+              /*  position: absolute;*/
+            }
+
+            katamino-figure.deg90{
+                -ms-transform: rotate(90deg);
+                -ms-transform-origin: 50% 50%;
+                -webkit-transform: rotate(90deg);
+                -webkit-transform-origin: 50% 50%;
+                transform: rotate(90deg);
+                transform-origin: 50% 50%;
+            }
+
         </style>
 
         <div class="card">
@@ -34,7 +47,7 @@
 
             <div class="flex-horizontal">
                 <div class="flexchild">
-                    <katamino-grid spec="[[gridSpec]]"></katamino-grid>
+                    <katamino-grid id="grid" spec="[[gridSpec]]"></katamino-grid>
                 </div>
                 <div class="flexchild">
                     <paper-input value="{{gridSpec.nrOfRows}}" label="Number of rows" type="number"></paper-input>
@@ -43,8 +56,14 @@
             </div>
 
 
-            <template is="dom-repeat" items="[[figures]]">
-                <katamino-figure grid-spec="[[gridSpec]]" spec="[[item]]"></katamino-figure>
+
+
+            <katamino-grid id="grid" spec="[[gridSpec]]"></katamino-grid>
+
+
+
+            <template id="figures" is="dom-repeat" items="[[figures]]">
+                <katamino-figure dnd-spec="[[dndSpec]]" grid-spec="[[gridSpec]]" spec="[[item]]"></katamino-figure>
             </template>
 
 
@@ -67,6 +86,14 @@
                             wide: 50,
                             nrPerRow: 5,
                             nrOfRows: 5
+                        }
+                    },
+                    dndSpec: {
+                        type: Object,
+                        notify: true,
+                        value: {
+                            offsetTop: 0,
+                            offsetLeft: 0
                         }
                     },
                     figures: {
@@ -145,7 +172,7 @@
 
             ready() {
                 super.ready();
-                this._setDragAndDrop();
+                this.set("dndSpec",{offsetLeft: this.$.grid.getBoundingClientRect().left, offsetTop: this.$.grid.getBoundingClientRect().top});
             }
 
             constructor() {
@@ -156,50 +183,7 @@
                 super.connectedCallback();
             }
 
-            _setDragAndDrop() {
-                // target elements with the "draggable" class
-                interact('katamino-figure')
-                    .draggable({
-                        // enable inertial throwing
-                        inertia: true,
-                        // keep the element within the area of it's parent
-                        restrict: {
-                            restriction: "parent",
-                            endOnly: true,
-                            elementRect: {top: 0, left: 0, bottom: 1, right: 1}
-                        },
-                        // enable autoScroll
-                        autoScroll: true,
 
-                        // call this function on every dragmove event
-                        onmove: dragMoveListener,
-                        // call this function on every dragend event
-                        onend: function (event) {
-                            var textEl = event.target.querySelector('p');
-
-                            textEl && (textEl.textContent =
-                                'moved a distance of '
-                                + (Math.sqrt(event.dx * event.dx +
-                                    event.dy * event.dy) | 0) + 'px');
-                        }
-                    });
-
-                function dragMoveListener(event) {
-                    var target = event.target,
-                        // keep the dragged position in the data-x/data-y attributes
-                        x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-                        y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-
-                    // translate the element
-                    target.style.webkitTransform =
-                        target.style.transform =
-                            'translate(' + x + 'px, ' + y + 'px)';
-
-                    // update the posiion attributes
-                    target.setAttribute('data-x', x);
-                    target.setAttribute('data-y', y);
-                }
-            }
         }
 
         window.customElements.define(KataminoView.is, KataminoView);

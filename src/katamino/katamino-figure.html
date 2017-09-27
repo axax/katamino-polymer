@@ -19,7 +19,7 @@
             </defs>
 
             <template is="dom-repeat" items="[[spec.shape]]" index-as="idx1">
-                <template is="dom-repeat" items="[[item]]" index-as="idx2">
+                <template id="figure" is="dom-repeat" items="[[item]]" index-as="idx2">
                     <template is="dom-if" if="{{item}}">
                         <rect x$="[[_getPos(idx2)]]" y$="[[_getPos(idx1)]]" width$="[[gridSpec.wide]]" height$="[[gridSpec.wide]]" fill$="[[spec.color]]"/>
                     </template>
@@ -65,25 +65,110 @@
             static get properties() {
                 return {
                     spec: Object,
-                    gridSpec: Object
+                    gridSpec: Object,
+                    dndSpec: Object
                 }
             }
 
             static get observers() {
                 return [
                     // Observer method name, followed by a list of dependencies, in parenthesis
-                    '_specChanged(spec.*, gridSpec.*)'
+                    '_specChanged(spec.*, gridSpec.*, dndSpec.*)'
                 ]
             }
 
+            ready() {
+                super.ready();
+                this._setDragAndDrop();
+            }
+
+
             _specChanged() {
+                console.log('specChanged');
 
                 this.set('gridWidth', this.gridSpec.wide*this.spec.shape[0].length );
                 this.set('gridHeight',  this.gridSpec.wide*this.spec.shape.length );
+
             }
 
             _getPos(i){
                 return this.gridSpec.wide*i;
+            }
+
+
+            _setDragAndDrop() {
+                var self = this;
+
+                Polymer.Async.idlePeriod.run(function() {
+                    var els = Polymer.dom(self.root).querySelectorAll("katamino-figure");
+
+                    for (var i = 0; i < els.length; i++){
+                        els[i].addEventListener("dblclick", function () {
+
+                            // this.classList.add("deg90");
+
+                        });
+                    }
+
+
+
+                });
+                var targets = [];
+                for( var i = 0; i < (this.gridSpec.nrOfRows-(this.spec.shape.length-1)); i++){
+                    for( var y = 0; y < this.gridSpec.nrPerRow-(this.spec.shape[0].length-1); y++){
+                        targets.push({x: this.dndSpec.offsetLeft+y*this.gridSpec.wide, y: this.dndSpec.offsetTop+i*this.gridSpec.wide});
+                    }
+                }
+
+                console.log(targets)
+
+                interact(this)
+                    .draggable({
+                        snap: {
+                            targets: targets,
+                            relativePoints: [
+                                { x: 0  , y: 0   }
+                            ]
+                        },
+                        // enable inertial throwing
+                        inertia: true,
+                        // keep the element within the area of it's parent
+                        /* restrict: {
+                         restriction: "parent",
+                         endOnly: true,
+                         elementRect: {top: 0, left: 0, bottom: 1, right: 1}
+                         },*/
+                        // enable autoScroll
+                        autoScroll: true,
+
+                        // call this function on every dragmove event
+                        onmove: dragMoveListener,
+                        // call this function on every dragend event
+                        onend: function (event) {
+                            var textEl = event.target.querySelector('p');
+
+                            textEl && (textEl.textContent =
+                                'moved a distance of '
+                                + (Math.sqrt(event.dx * event.dx +
+                                    event.dy * event.dy) | 0) + 'px');
+                        }
+                    });
+
+                function dragMoveListener(event) {
+                    var target = event.target,
+                        // keep the dragged position in the data-x/data-y attributes
+                        x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+                        y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+                    // translate the element
+                    target.style.webkitTransform =
+                        target.style.transform =
+                            'translate(' + x + 'px, ' + y + 'px)';
+
+                    // update the posiion attributes
+                    target.setAttribute('data-x', x);
+                    target.setAttribute('data-y', y);
+                }
             }
 
         }
