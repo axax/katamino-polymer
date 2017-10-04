@@ -6,6 +6,14 @@
         <style include="shared-styles">
             :host {
                 display: block;
+                line-height: 0;
+            }
+
+            rect:hover ~ rect, rect:hover + *{
+                /*stroke: #000;
+                stroke-width: 1px;*/
+                opacity: 0.5;
+                cursor: pointer;
             }
         </style>
 
@@ -66,14 +74,19 @@
                 return {
                     spec: Object,
                     gridSpec: Object,
-                    dndSpec: Object
+                    gridStockSpec: Object,
+                    dndSpec: Object,
+                    rotation: {
+                        type: Number,
+                        value:0
+                    }
                 }
             }
 
             static get observers() {
                 return [
                     // Observer method name, followed by a list of dependencies, in parenthesis
-                    '_specChanged(spec.*, gridSpec.*, dndSpec.*)'
+                    '_specChanged(spec.*, gridSpec.*, gridStockSpec.*, dndSpec.*)'
                 ]
             }
 
@@ -96,79 +109,129 @@
             }
 
 
+            _getTargets(){
+
+                var self = this;
+
+                var targets = [];
+
+                // Stock area
+                for( var i = 0; i < (self.gridStockSpec.nrOfRows-(self.spec.shape.length-1)); i++){
+                    for( var y = 0; y < self.gridStockSpec.nrPerRow-(self.spec.shape[0].length-1); y++){
+                        targets.push({x: self.dndSpec.offsetStockLeft+y*self.gridStockSpec.wide, y: self.dndSpec.offsetStockTop+i*self.gridStockSpec.wide});
+                    }
+                }
+
+                for( var i = 0; i < (self.gridSpec.nrOfRows-(self.spec.shape.length-1)); i++){
+                    for( var y = 0; y < self.gridSpec.nrPerRow-(self.spec.shape[0].length-1); y++){
+                        targets.push({x: self.dndSpec.offsetLeft+y*self.gridSpec.wide, y: self.dndSpec.offsetTop+i*self.gridSpec.wide});
+                    }
+                }
+
+                return targets;
+            }
+
+
             _setDragAndDrop() {
                 var self = this;
 
+
                 Polymer.Async.idlePeriod.run(function() {
-                    var els = Polymer.dom(self.root).querySelectorAll("katamino-figure");
 
-                    for (var i = 0; i < els.length; i++){
-                        els[i].addEventListener("dblclick", function () {
+                    self.addEventListener("dblclick", function () {
+                        self.set("rotation",self.rotation+90);
+                        self.style.webkitTransform = self.style.transform = 'rotate('+self.rotation+'deg)';
+                    });
 
-                            // this.classList.add("deg90");
 
+
+                    var p = self.parentNode, container=false;
+
+                    while(p){
+                        if( p.host )
+                            p=p.host;
+                        if( p.tagName === 'APP-HEADER-LAYOUT'){
+                            if( p.$.contentContainer ){
+                                container= p.$.contentContainer;
+                                break;
+                            }
+                        }
+                        p=Polymer.dom(p).parentNode;
+                    }
+
+
+
+
+                    var inter = interact(self)
+                        .draggable({
+                            snap: {
+                                offset: {x:0, y:0},
+                                targets: self._getTargets(),
+                                relativePoints: [
+                                    { x: 0  , y: 0   }
+                                ]
+                            },
+                            // enable inertial throwing
+                            inertia: false,
+                            // keep the element within the area of it's parent
+                            /*restrict: {
+                             restriction: "parent",
+                             endOnly: true,
+                             elementRect: {top: 0, left: 0, bottom: 1, right: 1}
+                             },*/
+                            // enable autoScroll
+                            autoScroll: true,
+                            onstart: function(){
+                            },
+                            // call this function on every dragmove event
+                            onmove: dragMoveListener,
+                            // call this function on every dragend event
+                            onend: function (event) {
+                                /*var textEl = event.target.querySelector('p');
+
+                                 textEl && (textEl.textContent =
+                                 'moved a distance of '
+                                 + (Math.sqrt(event.dx * event.dx +
+                                 event.dy * event.dy) | 0) + 'px');*/
+                            }
+                        });
+
+
+                    if( container ) {
+                        container.addEventListener("scroll", function () {
+                            inter.options.drag.snap.offset.y=-container.scrollTop;
                         });
                     }
 
 
 
-                });
-                var targets = [];
-                for( var i = 0; i < (this.gridSpec.nrOfRows-(this.spec.shape.length-1)); i++){
-                    for( var y = 0; y < this.gridSpec.nrPerRow-(this.spec.shape[0].length-1); y++){
-                        targets.push({x: this.dndSpec.offsetLeft+y*this.gridSpec.wide, y: this.dndSpec.offsetTop+i*this.gridSpec.wide});
+
+                    function dragMoveListener(event) {
+
+
+                        var target = event.target,
+                            // keep the dragged position in the data-x/data-y attributes
+                            x = (parseFloat(target.getAttribute('data-x')) || target.style.left ) + event.dx,
+                            y = (parseFloat(target.getAttribute('data-y')) || (target.style.top) ) + event.dy;
+
+                        // translate the element
+                        /* target.style.webkitTransform =
+                         target.style.transform =
+                         'translate(' + x + 'px, ' + y + 'px)';*/
+
+                        target.style.top = y + 'px';
+                        target.style.left = x + 'px';
+
+                        // update the posiion attributes
+                        target.setAttribute('data-x', x);
+                        target.setAttribute('data-y', y);
                     }
-                }
 
-                console.log(targets)
 
-                interact(this)
-                    .draggable({
-                        snap: {
-                            targets: targets,
-                            relativePoints: [
-                                { x: 0  , y: 0   }
-                            ]
-                        },
-                        // enable inertial throwing
-                        inertia: true,
-                        // keep the element within the area of it's parent
-                        /* restrict: {
-                         restriction: "parent",
-                         endOnly: true,
-                         elementRect: {top: 0, left: 0, bottom: 1, right: 1}
-                         },*/
-                        // enable autoScroll
-                        autoScroll: true,
+                });
 
-                        // call this function on every dragmove event
-                        onmove: dragMoveListener,
-                        // call this function on every dragend event
-                        onend: function (event) {
-                            var textEl = event.target.querySelector('p');
 
-                            textEl && (textEl.textContent =
-                                'moved a distance of '
-                                + (Math.sqrt(event.dx * event.dx +
-                                    event.dy * event.dy) | 0) + 'px');
-                        }
-                    });
 
-                function dragMoveListener(event) {
-                    var target = event.target,
-                        // keep the dragged position in the data-x/data-y attributes
-                        x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
-                        y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
-
-                    // translate the element
-                    target.style.webkitTransform =
-                        target.style.transform =
-                            'translate(' + x + 'px, ' + y + 'px)';
-
-                    // update the posiion attributes
-                    target.setAttribute('data-x', x);
-                    target.setAttribute('data-y', y);
-                }
             }
 
         }

@@ -14,9 +14,8 @@
                 padding: 10px;
             }
 
-            canvas {
-                width: 100%;
-                height: 300px;
+            .card{
+                position: relative;
             }
 
             .flex-horizontal {
@@ -28,7 +27,10 @@
             }
 
             katamino-figure{
-              /*  position: absolute;*/
+                position: absolute;
+                top:0px;
+                left:16px;
+
             }
 
             katamino-figure.deg90{
@@ -42,7 +44,7 @@
 
         </style>
 
-        <div class="card">
+        <div id="card" class="card">
             <h1>The Game</h1>
 
             <div class="flex-horizontal">
@@ -58,12 +60,16 @@
 
 
 
-            <katamino-grid id="grid" spec="[[gridSpec]]"></katamino-grid>
+            <katamino-grid id="gridStock" spec="[[gridStockSpec]]">
+
+
+            </katamino-grid>
+
 
 
 
             <template id="figures" is="dom-repeat" items="[[figures]]">
-                <katamino-figure dnd-spec="[[dndSpec]]" grid-spec="[[gridSpec]]" spec="[[item]]"></katamino-figure>
+                <katamino-figure style$="[[_figureStyle(item)]]" dnd-spec="[[dndSpec]]" grid-stock-spec="[[gridStockSpec]]" grid-spec="[[gridSpec]]" spec="[[item]]"></katamino-figure>
             </template>
 
 
@@ -72,6 +78,7 @@
 
 
     <script>
+        var figureOffsetLeft=0, figureOffsetTop= 0;
         class KataminoView extends Polymer.Element {
             static get is() {
                 return 'katamino-view';
@@ -88,12 +95,23 @@
                             nrOfRows: 5
                         }
                     },
+                    gridStockSpec: {
+                        type: Object,
+                        notify: true,
+                        value: {
+                            wide: 50,
+                            nrPerRow: 18,
+                            nrOfRows: 10
+                        }
+                    },
                     dndSpec: {
                         type: Object,
                         notify: true,
                         value: {
                             offsetTop: 0,
-                            offsetLeft: 0
+                            offsetLeft: 0,
+                            offsetStockTop: 0,
+                            offsetStockLeft: 0
                         }
                     },
                     figures: {
@@ -170,9 +188,27 @@
                 }
             }
 
+
+            _figureStyle(item){
+                var figureWidth=item.shape[0].length*this.gridSpec.wide;
+
+                if( (figureOffsetLeft+figureWidth) > this.$.gridStock.offsetWidth){
+                    figureOffsetLeft=0;
+                    figureOffsetTop+=4*this.gridSpec.wide;
+                }
+
+                var style= 'top:'+(this.$.gridStock.offsetTop+figureOffsetTop)+'px;left:'+(figureOffsetLeft+16)+'px';
+
+                figureOffsetLeft+= (figureWidth);
+
+                return style;
+            }
+
+
             ready() {
                 super.ready();
-                this.set("dndSpec",{offsetLeft: this.$.grid.getBoundingClientRect().left, offsetTop: this.$.grid.getBoundingClientRect().top});
+                this.set("dndSpec",{offsetLeft: this.$.grid.getBoundingClientRect().left, offsetTop: this.$.grid.getBoundingClientRect().top,
+                    offsetStockLeft: this.$.gridStock.getBoundingClientRect().left, offsetStockTop: this.$.gridStock.getBoundingClientRect().top});
             }
 
             constructor() {
