@@ -30,6 +30,7 @@
                 position: absolute;
                 top:0px;
                 left:16px;
+                z-index:1;
 
             }
 
@@ -192,7 +193,7 @@
             _figureStyle(item){
                 var figureWidth=item.shape[0].length*this.gridSpec.wide;
 
-                if( (figureOffsetLeft+figureWidth) > this.$.gridStock.offsetWidth){
+                if( (figureOffsetLeft+figureWidth) > this.$.gridStock.shadowRoot.querySelector('svg').clientWidth){
                     figureOffsetLeft=0;
                     figureOffsetTop+=4*this.gridSpec.wide;
                 }
@@ -209,6 +210,8 @@
                 super.ready();
                 this.set("dndSpec",{offsetLeft: this.$.grid.getBoundingClientRect().left, offsetTop: this.$.grid.getBoundingClientRect().top,
                     offsetStockLeft: this.$.gridStock.getBoundingClientRect().left, offsetStockTop: this.$.gridStock.getBoundingClientRect().top});
+
+
             }
 
             constructor() {
