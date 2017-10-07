@@ -7,6 +7,8 @@
             :host {
                 display: block;
                 line-height: 0;
+                position: absolute;
+                transition: transform .2s ease-in-out;
             }
 
             svg rect {
@@ -14,22 +16,26 @@
                 cursor: pointer;
             }
 
-            :host([hovered]){
-                z-index:2;
+            :host([hovering]){
+                opacity: 0.75;
+                z-index: 2;
+            }
+            :host([dragging]){
+                transform: scale(1.1);
+                opacity: 0.75;
+                z-index: 3;
             }
 
 
-            :host([hovered]) rect{
-                fill: black;
-                z-index:2;
+            :host([dragging]) rect{
             }
         </style>
 
         <svg id="svg" width$="[[gridWidth]]" height$="[[gridHeight]]" xmlns="http://www.w3.org/2000/svg">
 
-
-            <template is="dom-repeat" items="[[spec.shape]]" index-as="idx1">
-                <template id="figure" is="dom-repeat" items="[[item]]" index-as="idx2">
+            <template id="figure" is="dom-repeat" items="[[spec.shape]]" index-as="idx1">
+                <template is="dom-repeat" items="[[item]]" index-as="idx2">
+                    [[idx1]]
                     <template is="dom-if" if="{{item}}">
                         <rect x$="[[_getPos(idx2)]]" y$="[[_getPos(idx1)]]" width$="[[gridSpec.wide]]" height$="[[gridSpec.wide]]" fill$="[[spec.color]]"/>
                     </template>
@@ -85,7 +91,11 @@
                     hovered: {
                         type: Boolean,
                         value:false
-                    }
+                    },
+                    scaleFalg: {
+                        type: Boolean,
+                        value:true
+                    },
                 }
             }
 
@@ -136,6 +146,97 @@
             }
 
 
+            _setRectEvents() {
+                var self = this;
+
+                var rects = self.$.svg.querySelectorAll('rect');
+                for (i = 0; i < rects.length; ++i) {
+                    var rect = rects[i];
+
+                    rect.addEventListener("mouseover", function () {
+                        self.setAttribute('hovering',true);
+                    });
+                    rect.addEventListener("mouseleave", function () {
+                        self.removeAttribute('hovering');
+                    });
+                }
+            }
+
+            _flipFigure(){
+                var self = this, shape = self.spec.shape, newShape=[];
+
+                self.style.transform = 'scaleX(-1)';
+                for(var i = 0; i< shape.length;i++){
+                    newShape.push(shape[i].reverse() );
+                }
+                self._refreshFigure(newShape);
+            }
+
+            _rotateFigure(){
+                var self = this, shape = self.spec.shape, newShape=[];
+
+                self.style.transform = 'rotate(90deg)';
+
+                for(var y = shape.length-1;y>=0;y--){
+                    for(var i = 0; i< shape[0].length;i++){
+
+                        if( newShape.length<=i){
+                            newShape.push([]);
+                        }
+                        newShape[i].push(shape[y][i]);
+                    }
+
+                }
+
+                self._refreshFigure(newShape, true);
+            }
+
+            _refreshFigure(newShape, rotate){
+                var self = this;
+
+                setTimeout(function(){
+                    self.spec.shape= newShape;
+                    self.set('spec',self.spec);
+
+
+                    // refresh figure
+                    self.$.figure.items = null;
+                    self.$.figure.render();
+                    self.$.figure.items = newShape;
+                    self.$.figure.render();
+                    self._setRectEvents();
+
+                    var x= self.style.transition;
+                    self.style.transition = 'transform 0s';
+                    self.style.transform = '';
+                    setTimeout(function(){
+                        self.style.transition=x;
+                    },1)
+                    self.interact.options.drag.snap.targets= self._getTargets();
+
+
+                    if( rotate ) {
+
+                        var svg=self.$.svg,
+                            w = svg.getAttribute("width"),
+                            h = svg.getAttribute("height"),
+                            posx = svg.getAttribute("x"),
+                            posy = svg.getAttribute("y");
+
+                        svg.setAttribute("width", h);
+                        svg.setAttribute("height", w);
+
+                        self.style.top = (parseInt(self.style.top)+(h-w)/2)+"px";
+                        self.style.left = (parseInt(self.style.left)+(w-h)/2)+"px";
+
+                    }
+
+
+
+                },200);
+            }
+
+
             _setDragAndDrop() {
                 var self = this;
 
@@ -143,8 +244,19 @@
                 Polymer.Async.idlePeriod.run(function() {
 
                     self.addEventListener("dblclick", function () {
-                        self.set("rotation",self.rotation+90);
-                        self.style.webkitTransform = self.style.transform = 'rotate('+self.rotation+'deg)';
+
+                        if( self.rotation === 0) {
+                            self._flipFigure();
+                        }else{
+                            self._rotateFigure();
+                        }
+
+
+                        if( self.rotation < 4) {
+                            self.set("rotation", self.rotation + 1);
+                        }else{
+                            self.set("rotation", 0);
+                        }
                     });
 
 
@@ -163,28 +275,9 @@
                         p=Polymer.dom(p).parentNode;
                     }
 
+                    self._setRectEvents();
 
-                    var rects = self.$.svg.querySelectorAll('rect');
-                    container.isHover=false;
-
-                    for (i = 0; i < rects.length; ++i) {
-                        var rect = rects[i];
-
-
-                        rect.addEventListener("mouseover", function () {
-                            if( container.isHover ) return false;
-                            container.isHover=true;
-                            self.setAttribute("hovered",true);
-                            //self.classList.add('hover');
-                        });
-                        rect.addEventListener("mouseleave", function () {
-                            container.isHover=false;
-                            self.removeAttribute("hovered");
-                        });
-                    }
-
-
-                    var inter = interact(self)
+                    self.interact= interact(self)
                         .allowFrom('rect')
                         .draggable({
                             // the rect will be the selected element's parent
@@ -206,12 +299,15 @@
                             // enable autoScroll
                             autoScroll: true,
                             onstart: function(){
+                                self.setAttribute("dragging",true);
                                 console.log('start')
                             },
                             // call this function on every dragmove event
                             onmove: dragMoveListener,
                             // call this function on every dragend event
                             onend: function (event) {
+                                self.removeAttribute("dragging");
+
                                 /*var textEl = event.target.querySelector('p');
 
                                  textEl && (textEl.textContent =
@@ -224,13 +320,9 @@
 
                     if( container ) {
                         container.addEventListener("scroll", function () {
-                            inter.options.drag.snap.offset.y=-container.scrollTop;
+                            self.interact.options.drag.snap.offset.y=-container.scrollTop;
                         });
                     }
-
-
-
-
 
 
 
