@@ -191,6 +191,10 @@
                 self._refreshFigure(newShape, true);
             }
 
+            _refresh(){
+                this.interact.options.drag.snap.targets= this._getTargets();
+            }
+
             _refreshFigure(newShape, rotate){
                 var self = this;
 
@@ -212,7 +216,7 @@
                     setTimeout(function(){
                         self.style.transition=x;
                     },1)
-                    self.interact.options.drag.snap.targets= self._getTargets();
+                    self._refresh();
 
 
                     if( rotate ) {
@@ -226,8 +230,19 @@
                         svg.setAttribute("width", h);
                         svg.setAttribute("height", w);
 
-                        self.style.top = (parseInt(self.style.top)+(h-w)/2)+"px";
-                        self.style.left = (parseInt(self.style.left)+(w-h)/2)+"px";
+                        var dt, dl;
+
+                        if( h > w){
+                            dt=Math.ceil((h-w)/2 / self.gridSpec.wide);
+                            dl=Math.ceil((w-h)/2 / self.gridSpec.wide);
+                        }else{
+                            dt=Math.floor((h-w)/2 / self.gridSpec.wide);
+                            dl=Math.floor((w-h)/2 / self.gridSpec.wide);
+                        }
+
+
+                        self.style.top = (parseInt(self.style.top)+ dt* self.gridSpec.wide)+"px";
+                        self.style.left = (parseInt(self.style.left)+dl * self.gridSpec.wide)+"px";
 
                     }
 
@@ -290,12 +305,6 @@
                             },
                             // enable inertial throwing
                             inertia: true,
-                            // keep the element within the area of it's parent
-                            /*restrict: {
-                             restriction: "parent",
-                             endOnly: true,
-                             elementRect: {top: 0, left: 0, bottom: 1, right: 1}
-                             },*/
                             // enable autoScroll
                             autoScroll: true,
                             onstart: function(){
