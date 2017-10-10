@@ -1,5 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="katamino/katamino-grid.html">
@@ -41,6 +44,10 @@
                 transform-origin: 50% 50%;
             }
 
+            #grid{
+                margin-bottom: 40px;
+            }
+
         </style>
 
         <div id="card" class="card">
@@ -51,8 +58,18 @@
                     <katamino-grid id="grid" spec="[[gridSpec]]"></katamino-grid>
                 </div>
                 <div class="flexchild">
-                    <paper-input min="3" max="12" on-change="_changeNumberOfRows" on-click="_changeNumberOfRows" value="{{gridSpec.nrOfRows}}" label="Number of rows" type="number"></paper-input>
-                    <paper-input value="{{gridSpec.wide}}" label="Field size" type="number"></paper-input>
+
+                    <paper-dropdown-menu label="Game" on-iron-select="_gameSelected">
+                        <paper-listbox slot="dropdown-content" class="dropdown-content" selected="0">
+                            <template id="games" is="dom-repeat" items="[[games]]">
+                                <paper-item item="[[item]]">[[item.name]]</paper-item>
+                            </template>
+                        </paper-listbox>
+                    </paper-dropdown-menu>
+                    <paper-input id="nrOfRows" min="3" max="12" on-change="_changeNumberOfRows" on-click="_changeNumberOfRows" value="{{gridSpec.nrOfRows}}" label="Number of rows" type="number"></paper-input>
+                    <!--<paper-input value="{{gridSpec.wide}}" label="Field size" type="number"></paper-input>-->
+
+
                 </div>
             </div>
 
@@ -60,9 +77,8 @@
             <katamino-grid id="gridStock" spec="[[gridStockSpec]]"></katamino-grid>
 
 
-
-            <template id="figures" is="dom-repeat" items="[[figures]]">
-                <katamino-figure style$="[[_figureStyle(item)]]" dnd-spec="[[dndSpec]]" grid-stock-spec="[[gridStockSpec]]" grid-spec="[[gridSpec]]" spec="[[item]]"></katamino-figure>
+            <template id="figures" is="dom-repeat">
+                <katamino-figure style$="[[_figureStyle(index)]]" dnd-spec="[[dndSpec]]" grid-stock-spec="[[gridStockSpec]]" grid-spec="[[gridSpec]]" spec="[[_getFigure(item)]]"></katamino-figure>
             </template>
 
 
@@ -71,7 +87,7 @@
 
 
     <script>
-        var figureOffsetLeft=0, figureOffsetTop= 0, nrOfRowsBefore=5;
+        var nrOfRowsBefore=3;
         class KataminoView extends Polymer.Element {
             static get is() {
                 return 'katamino-view';
@@ -117,19 +133,19 @@
                             {
                                 color: "#0000ff",
                                 shape: [[1, 1, 0],
-                                    [0, 1, 0],
-                                    [0, 1, 1]]
+                                        [0, 1, 0],
+                                        [0, 1, 1]]
                             },
                             {
                                 color: "#00ff00",
                                 shape: [[0, 1, 0],
-                                    [1, 1, 1],
-                                    [0, 1, 0]]
+                                        [1, 1, 1],
+                                        [0, 1, 0]]
                             },
                             {
                                 color: "#00fff0",
                                 shape: [[1, 1, 1, 1],
-                                    [0, 1, 0, 0]]
+                                        [0, 1, 0, 0]]
                             },
                             {
                                 color: "#009109",
@@ -137,33 +153,33 @@
                                         [1, 1, 0],
                                         [1, 0 , 0]]
                             },
-                            {
+                            { /* 5 */
                                 color: "#ff00e1",
                                 shape: [[1, 1, 0],
-                                    [1, 1, 1]]
+                                        [1, 1, 1]]
                             },
                             {
                                 color: "#ff8c00",
                                 shape: [[1, 0, 0],
-                                    [1, 1, 1],
-                                    [0, 1, 0]]
+                                        [1, 1, 1],
+                                        [0, 1, 0]]
                             },
                             {
                                 color: "#020091",
                                 shape: [[1, 1, 1],
-                                    [0, 1, 0],
-                                    [0, 1, 0]]
+                                        [0, 1, 0],
+                                        [0, 1, 0]]
                             },
                             {
                                 color: "#423fff",
                                 shape: [[ 0,1, 1, 1],
-                                    [1, 1, 0, 0 ]]
+                                        [1, 1, 0, 0 ]]
                             },
                             {
                                 color: "#9492fc",
                                 shape: [[1, 1, 1],
-                                    [1, 0, 0 ],
-                                    [1, 0, 0 ]]
+                                        [1, 0, 0 ],
+                                        [1, 0, 0 ]]
                             },
                             {
                                 color: "#f6ff00",
@@ -177,22 +193,76 @@
                                         [1, 1, 1, 1 ]]
                             }
                         ]
+                    },
+                    selectedGame:{
+                        type:Object
+                    },
+                    games:{
+                        type: Array,
+                        value: [{
+                            name: "A. The small slam",
+                            figures: [11,3,7,5,4,1,9,8]
+                        },
+                        {
+                            name: "B. The small slam",
+                            figures: [8,5,10]
+                        }]
                     }
                 }
             }
 
+            _gameSelected(e) {
+                var selectedItem = e.target.selectedItem;
+                if (selectedItem) {
+                    this.set('selectedGame', selectedItem.item);
 
-            _figureStyle(item){
-                var figureWidth=item.shape[0].length*this.gridSpec.wide;
+                    this.$.nrOfRows.setAttribute('max',this.selectedGame.figures.length);
 
-                if( (figureOffsetLeft+figureWidth) > this.$.gridStock.shadowRoot.querySelector('svg').clientWidth){
-                    figureOffsetLeft=0;
-                    figureOffsetTop+=4*this.gridSpec.wide;
+                    this.gridSpec.nrOfRows=3
+                    this.set('gridSpec',this.gridSpec);
+                    this.$.nrOfRows.updateValueAndPreserveCaret(3);
+
+                    this.$.figures.items= this._getFigures();
+                    this.$.figures.render();
                 }
+            }
+
+            _getFigure(idx){
+                return this.figures[idx];
+            }
+
+            _getFigures(){
+                if( this.selectedGame ) {
+                    console.log(this.selectedGame)
+                    var a = [];
+                    for(var i=0;i<this.gridSpec.nrOfRows;i++){
+                        a.push(this.selectedGame.figures[i]);
+                    }
+                    return a;
+                }
+            }
+
+            _figureStyle(idx){
+
+                var figures= this._getFigures();
+
+                var figureOffsetLeft=0, figureOffsetTop=0, item, figureWidth, clientWidth=this.$.gridStock.shadowRoot.querySelector('svg').clientWidth;
+                for(var i=0;i<idx;i++){
+                    item = this.figures[figures[i]];
+                    figureWidth=item.shape[0].length*this.gridSpec.wide;
+
+                    if( (figureOffsetLeft+figureWidth+this.gridSpec.wide+16) > clientWidth){
+                        figureOffsetLeft=0;
+                        figureOffsetTop+=4*this.gridSpec.wide;
+                    }else{
+                        figureOffsetLeft+= figureWidth+this.gridSpec.wide;
+                    }
+                }
+
+
 
                 var style= 'top:'+(this.$.gridStock.offsetTop+figureOffsetTop)+'px;left:'+(figureOffsetLeft+16)+'px';
 
-                figureOffsetLeft+= (figureWidth);
 
                 return style;
             }
@@ -205,10 +275,16 @@
 
             _changeNumberOfRows(){
                 if( nrOfRowsBefore === this.gridSpec.nrOfRows ){
-                    return;
+                    return false;
+                }
+                if( this.gridSpec.nrOfRows> this.selectedGame.figures.length){
+                    this.gridSpec.nrOfRows=this.selectedGame.figures.length;
+                    return false;
                 }
 
                 nrOfRowsBefore=this.gridSpec.nrOfRows;
+
+
 
                 var offset = this.dndSpec.offsetStockTop;
                 this._calculateOffset();
@@ -218,6 +294,9 @@
                     figure.style.top = parseInt(figure.style.top)+(this.dndSpec.offsetStockTop-offset)+'px';
                     figure._refresh();
                 }
+
+                this.$.figures.items= this._getFigures();
+                this.$.figures.render();
             }
 
             _calculateOffset(){
