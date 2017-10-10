@@ -249,20 +249,20 @@
             }
 
             _figureStyle(idx){
-
                 var figures= this._getFigures();
 
                 var figureOffsetLeft=0, figureOffsetTop=0, item, figureWidth, clientWidth=this.$.gridStock.shadowRoot.querySelector('svg').clientWidth;
-                for(var i=0;i<idx;i++){
+                for(var i=0;i<=idx;i++){
                     item = this.figures[figures[i]];
                     figureWidth=item.shape[0].length*this.gridSpec.wide;
 
-                    if( (figureOffsetLeft+figureWidth+this.gridSpec.wide+16) > clientWidth){
+                    if( (figureOffsetLeft+figureWidth+this.gridSpec.wide) > clientWidth){
                         figureOffsetLeft=0;
                         figureOffsetTop+=4*this.gridSpec.wide;
-                    }else{
-                        figureOffsetLeft+= figureWidth+this.gridSpec.wide;
                     }
+                    if( i<idx )
+                        figureOffsetLeft+= figureWidth+this.gridSpec.wide;
+
                 }
 
 
