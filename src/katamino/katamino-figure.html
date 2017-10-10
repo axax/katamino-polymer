@@ -206,7 +206,10 @@
             }
 
             _refresh(){
-                this.interact.options.drag.snap.targets= this._getTargets();
+                var self = this;
+                setTimeout(function(){
+                    self.interact.options.drag.snap.targets= self._getTargets();
+                },1)
             }
 
             _refreshFigure(newShape, rotate){
