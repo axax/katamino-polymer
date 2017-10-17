@@ -3,6 +3,7 @@
 <link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="katamino/katamino-grid.html">
@@ -35,15 +36,6 @@
 
             }
 
-            katamino-figure.deg90{
-                -ms-transform: rotate(90deg);
-                -ms-transform-origin: 50% 50%;
-                -webkit-transform: rotate(90deg);
-                -webkit-transform-origin: 50% 50%;
-                transform: rotate(90deg);
-                transform-origin: 50% 50%;
-            }
-
             #grid{
                 margin-bottom: 40px;
             }
@@ -69,6 +61,7 @@
                     <paper-input id="nrOfRows" min="3" max="12" on-change="_changeNumberOfRows" on-click="_changeNumberOfRows" value="{{gridSpec.nrOfRows}}" label="Number of rows" type="number"></paper-input>
                     <!--<paper-input value="{{gridSpec.wide}}" label="Field size" type="number"></paper-input>-->
 
+                    <paper-button on-click="_solve" raised class="indigo">solve</paper-button>
 
                 </div>
             </div>
@@ -78,7 +71,7 @@
 
 
             <template id="figures" is="dom-repeat">
-                <katamino-figure style$="[[_figureStyle(index)]]" dnd-spec="[[dndSpec]]" grid-stock-spec="[[gridStockSpec]]" grid-spec="[[gridSpec]]" spec="[[_getFigure(item)]]"></katamino-figure>
+                <katamino-figure on-click="_figureClicked" style$="[[_figureStyle(index)]]" dnd-spec="[[dndSpec]]" grid-stock-spec="[[gridStockSpec]]" grid-spec="[[gridSpec]]" spec="[[_getFigure(item)]]"></katamino-figure>
             </template>
 
 
@@ -211,6 +204,135 @@
                 }
             }
 
+            _solve(){
+                var self=this,
+                    gridTop=this.$.grid.offsetTop,
+                    gridLeft=this.$.gridStock.offsetLeft,
+                    figuresDom = Polymer.dom(this.root).querySelectorAll('katamino-figure'),
+                    figures= this._getFigures(),
+                    fields = [];
+
+
+                var clearFields = function(){
+                    fields = [];
+                    for(var i = 0;i<self.gridSpec.nrOfRows;i++){
+                        fields.push([-1,-1,-1,-1,-1]);
+                    }
+                }
+
+
+                var checkFields = function(xoffset,yoffset,idx,shape){
+
+                    for( var y=0; y<shape.length;y++){
+                        for( var x=0; x<shape[0].length;x++){
+                            if( shape[y][x]!=0 ){
+                                if(fields[yoffset+y][xoffset+x]!=-1 ){
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+
+                    for( var y=0; y<shape.length;y++){
+                        for( var x=0; x<shape[0].length;x++){
+                            if( shape[y][x]!=0 ) {
+                                fields[yoffset + y][xoffset + x] = idx;
+                            }
+                        }
+                    }
+
+
+                    return true;
+                }
+
+
+                /* visualize */
+
+                var visualizeCount=0,visualize = function(x,y,r,idx) {
+                    var t = gridTop + (self.gridSpec.wide * y);
+                    var l = gridLeft + (self.gridSpec.wide * x);
+                    setTimeout(function () {
+                        figuresDom[idx].style.transform = 'rotate('+(r*90)+'deg)';
+                       // figuresDom[idx]._refreshFigure(shape);
+
+                        figuresDom[idx].style.top = t + 'px';
+                        figuresDom[idx].style.left = l + 'px';
+                    }, 500 * visualizeCount);
+                    visualizeCount++;
+                }
+
+                var findPos= function(idx, startX, startY, startR){
+
+                    if( !startX ){
+                        startX = 0;
+                    }
+                    if( !startY ){
+                        startY = 0;
+                    }
+                    if( !startR ){
+                        startR = 0;
+                    }
+
+
+                    var shape = self._getFigure(figures[idx]).shape;
+
+                    for( var r=0;r<4;r++) {
+
+                        var dw = 5-shape[0].length+1,
+                            dh = self.gridSpec.nrOfRows-shape.length+1
+
+                        for (var x = startX; x < dw; x++) {
+                            for (var y = startY; y < dh; y++) {
+                                if (checkFields(x, y, idx, shape)) {
+                                    visualize(x, y, r, idx);
+                                    return {x: x, y: y, r: r};
+                                }
+                            }
+                            startY = 0;
+                        }
+
+                        var newShape=[];
+                        for(var y = shape.length-1;y>=0;y--){
+                            for(var i = 0; i< shape[0].length;i++){
+
+                                if( newShape.length<=i){
+                                    newShape.push([]);
+                                }
+                                newShape[i].push(shape[y][i]);
+                            }
+                        }
+                        shape=newShape;
+                        console.log(shape)
+                    }
+                    return false;
+                };
+
+
+
+
+                var pos = {x:0,y:0}, oo=0;
+                clearFields();
+                while( pos = findPos(0,pos.x, pos.y) ){
+                    oo++;
+                    pos.y++;
+                    var haspos=false;
+
+                    for(var i=1;i<figures.length;i++){
+                        haspos = findPos(i);
+                        if( !haspos )
+                            break;
+                    }
+                    if(haspos) {
+                        break;
+                    }
+                    clearFields();
+
+                }
+                console.log(pos)
+
+
+            }
+
             _gameSelected(e) {
                 var selectedItem = e.target.selectedItem;
                 if (selectedItem && selectedItem.item) {
@@ -270,6 +392,16 @@
 
 
                 return style;
+            }
+
+
+            _figureClicked(e){
+                /*var figures = Polymer.dom(this.root).querySelectorAll('katamino-figure');
+                for(var i = 0; i< figures.length; i++){
+                    figures[i].set('selected',false);
+                }
+                e.target.set('selected',true);*/
+
             }
 
 

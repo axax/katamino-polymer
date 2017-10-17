@@ -11,8 +11,13 @@
                 transition: transform .2s ease-in-out;
             }
 
-            svg rect {
+            svg {
+                /*box-shadow: 10px 10px 5px #888888;*/
+                overflow: visible;
 
+            }
+
+            svg rect {
                 cursor: pointer;
             }
 
@@ -29,20 +34,29 @@
 
             :host([dragging]) rect{
             }
+
         </style>
 
         <svg id="svg" width$="[[gridWidth]]" height$="[[gridHeight]]" xmlns="http://www.w3.org/2000/svg">
-
+            <filter id="dropshadow" height="130%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="1"/> <!-- stdDeviation is how much to blur -->
+                <feOffset dx="2" dy="2" result="offsetblur"/> <!-- how much to offset -->
+                <feMerge>
+                    <feMergeNode/> <!-- this contains the offset blurred image -->
+                    <feMergeNode in="SourceGraphic"/> <!-- this contains the element that the filter is applied to -->
+                </feMerge>
+            </filter>
             <template id="figure" is="dom-repeat" items="[[spec.shape]]" index-as="idx1">
                 <template is="dom-repeat" items="[[item]]" index-as="idx2">
                     [[idx1]]
                     <template is="dom-if" if="{{item}}">
-                        <rect x$="[[_getPos(idx2)]]" y$="[[_getPos(idx1)]]" width$="[[gridSpec.wide]]" height$="[[gridSpec.wide]]" fill$="[[spec.color]]"/>
+                        <rect style="filter:url(#dropshadow)" x$="[[_getPos(idx2)]]" y$="[[_getPos(idx1)]]" width$="[[gridSpec.wide]]" height$="[[gridSpec.wide]]" fill$="[[spec.color]]"/>
                     </template>
                 </template>
             </template>
 
         </svg>
+
 
     </template>
 
@@ -88,9 +102,14 @@
                         type: Number,
                         value:0
                     },
-                    hovered: {
+                    hovering: {
                         type: Boolean,
                         value:false
+                    },
+                    hasShadow: {
+                        type: Boolean,
+                        value:true,
+                        observer: '_hasShadowChanged'
                     },
                     scaleFalg: {
                         type: Boolean,
@@ -111,11 +130,22 @@
                 this._setDragAndDrop();
             }
 
-
             _specChanged() {
                 this.set('gridWidth', this.gridSpec.wide*this.spec.shape[0].length );
                 this.set('gridHeight',  this.gridSpec.wide*this.spec.shape.length );
+            }
 
+            _hasShadowChanged(shadow){
+                var rects = this.$.svg.querySelectorAll('rect');
+                for (i = 0; i < rects.length; ++i) {
+                    var rect = rects[i];
+
+                    if( shadow ) {
+                        rect.style = "filter:url(#dropshadow)";
+                    }else {
+                        rect.style = "";
+                    }
+                }
             }
 
             _getPos(i){
@@ -220,19 +250,20 @@
                     self.set('spec',self.spec);
 
 
+                    var x= self.style.transition;
+                    self.style.transition = 'transform 0s';
+                    self.style.transform = '';
+                    setTimeout(function(){
+                        self.style.transition=x;
+                    },200);
+
+
                     // refresh figure
                     self.$.figure.items = null;
                     self.$.figure.render();
                     self.$.figure.items = newShape;
                     self.$.figure.render();
                     self._setRectEvents();
-
-                    var x= self.style.transition;
-                    self.style.transition = 'transform 0s';
-                    self.style.transform = '';
-                    setTimeout(function(){
-                        self.style.transition=x;
-                    },1)
                     self._refresh();
 
 
@@ -333,6 +364,10 @@
                             // call this function on every dragend event
                             onend: function (event) {
                                 self.removeAttribute("dragging");
+
+                                var targetTop = parseInt(event.target.style.top);
+
+                                self._hasShadowChanged(targetTop >= self.dndSpec.offsetStockTop-self.spec.shape.length*self.gridStockSpec.wide );
 
                                 /*var textEl = event.target.querySelector('p');
 
