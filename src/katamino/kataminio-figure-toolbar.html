@@ -1,0 +1,67 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="katamino-figure-toolbar">
+    <template>
+        <style include="shared-styles">
+            :host {
+                display: block;
+                position: absolute;
+                top:0px;
+                left:0px;
+                color: black;
+                background: rgba(192,192,192,0.5);
+            }
+
+            paper-icon-button{
+                color:#fff;
+                padding: 0;
+                margin: 0;
+                height: 23px;
+                width: 23px;
+            }
+
+        </style>
+        <paper-icon-button on-click="_clickRotation" icon="icons:cached"></paper-icon-button>
+        <paper-icon-button on-click="_clickFlip" icon="icons:compare-arrows"></paper-icon-button>
+
+    </template>
+
+    <script>
+
+
+        class KataminoFigureToolbar extends Polymer.Element {
+            static get is() {
+                return 'katamino-figure-toolbar';
+            }
+
+            static get properties() {
+                return {
+
+                }
+            }
+
+            static get observers() {
+                return [
+                    // Observer method name, followed by a list of dependencies, in parenthesis
+                ]
+            }
+
+            ready() {
+                super.ready();
+            }
+
+            _clickRotation(){
+                this.dispatchEvent(new CustomEvent('rotation-click', {}));
+            }
+            _clickFlip(){
+                this.dispatchEvent(new CustomEvent('flip-click', {}));
+            }
+
+        }
+
+        window.customElements.define(KataminoFigureToolbar.is, KataminoFigureToolbar);
+    </script>
+</dom-module>

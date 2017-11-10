@@ -342,9 +342,9 @@
 
                     this.$.nrOfRows.setAttribute('max',this.selectedGame.figures.length);
 
-                    this.gridSpec.nrOfRows=3
-                    this.set('gridSpec',this.gridSpec);
-                    this.$.nrOfRows.updateValueAndPreserveCaret(3);
+                    this.set('gridSpec.nrOfRows',3);
+                    //this.$.nrOfRows.updateValueAndPreserveCaret(3);
+
 
                     // hack to get dom-repeat refreshed
                     this.$.figures.items=null;
@@ -353,6 +353,7 @@
 
                     this.$.figures.items= this._getFigures();
                     this.$.figures.render();
+                    this._calculateOffset();
                 }
             }
 
@@ -411,6 +412,7 @@
             }
 
             _changeNumberOfRows(){
+
                 if( nrOfRowsBefore === this.gridSpec.nrOfRows ){
                     return false;
                 }
@@ -418,9 +420,9 @@
                     this.gridSpec.nrOfRows=this.selectedGame.figures.length;
                     return false;
                 }
+                this.$.nrOfRows.disabled = true;
 
                 nrOfRowsBefore=this.gridSpec.nrOfRows;
-
 
 
                 var offset = this.dndSpec.offsetStockTop;
@@ -434,6 +436,9 @@
 
                 this.$.figures.items= this._getFigures();
                 this.$.figures.render();
+
+
+                this.$.nrOfRows.disabled = false;
             }
 
             _calculateOffset(){

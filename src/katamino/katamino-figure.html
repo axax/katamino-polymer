@@ -1,5 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../shared-styles.html">
+<link rel="import" href="./kataminio-figure-toolbar.html">
 
 <dom-module id="katamino-figure">
     <template>
@@ -57,6 +58,7 @@
 
         </svg>
 
+        <katamino-figure-toolbar id="toolbar" on-flip-click="_flipFigure" on-rotation-click="_rotateFigure"></katamino-figure-toolbar>
 
     </template>
 
@@ -295,8 +297,23 @@
                     }
 
 
+                    var pos = 0;
+
+                    for( var i = 0; i<newShape[0].length;i++){
+                        if( newShape[0][i]===1){
+                            pos = (i*self.gridSpec.wide);
+                            break;
+                        }
+                    }
+
+
+                    self.$.toolbar.style.left = pos+"px";
+
+
 
                 },200);
+
+
             }
 
 
