@@ -2,6 +2,8 @@
 
 Katamino is a superb puzzle and a challenging game.
 
+[Check out the DEMO](https://katamino-polymer.firebaseapp.com/)
+
 ## How the game works
 
 The game consists of 12 different pieces constructed of right angled blocks so each piece is made of 5 "squares". (Think Tetris pieces, but 5 squares instead of 4.)
