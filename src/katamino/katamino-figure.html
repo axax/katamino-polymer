@@ -10,21 +10,28 @@
                 line-height: 0;
                 position: absolute;
                 transition: transform .2s ease-in-out;
+                pointer-events:none;
+
+            }
+            katamino-figure-toolbar{
+                pointer-events:all;
             }
 
             svg {
                 /*box-shadow: 10px 10px 5px #888888;*/
                 overflow: visible;
+                position: absolute;
 
             }
 
             svg rect {
+                z-index: 2;
                 cursor: pointer;
+                pointer-events:all;
             }
 
             :host([hovering]){
                 opacity: 0.75;
-                z-index: 2;
             }
             :host([dragging]){
                 transform: scale(1.1);
@@ -130,6 +137,7 @@
             ready() {
                 super.ready();
                 this._setDragAndDrop();
+                this._posToolbar();
             }
 
             _specChanged() {
@@ -152,6 +160,20 @@
 
             _getPos(i){
                 return this.gridSpec.wide*i;
+            }
+
+            _posToolbar(){
+                var pos = 0;
+
+                for( var i = 0; i<this.spec.shape[0].length;i++){
+                    if( this.spec.shape[0][i]===1){
+                        pos = (i*this.gridSpec.wide);
+                        break;
+                    }
+                }
+
+
+                this.$.toolbar.style.left = pos+"px";
             }
 
 
@@ -293,21 +315,9 @@
 
                         self.style.top = (parseInt(self.style.top)+ dt* self.gridSpec.wide)+"px";
                         self.style.left = (parseInt(self.style.left)+dl * self.gridSpec.wide)+"px";
-
                     }
 
-
-                    var pos = 0;
-
-                    for( var i = 0; i<newShape[0].length;i++){
-                        if( newShape[0][i]===1){
-                            pos = (i*self.gridSpec.wide);
-                            break;
-                        }
-                    }
-
-
-                    self.$.toolbar.style.left = pos+"px";
+                  self._posToolbar();
 
 
 
@@ -385,6 +395,8 @@
                                 var targetTop = parseInt(event.target.style.top);
 
                                 self._hasShadowChanged(targetTop >= self.dndSpec.offsetStockTop-self.spec.shape.length*self.gridStockSpec.wide );
+
+                                self.dispatchEvent(new CustomEvent('position-changed', {}));
 
                                 /*var textEl = event.target.querySelector('p');
 
