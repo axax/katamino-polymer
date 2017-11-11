@@ -1,6 +1,9 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<! -- import template repeater -->
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+
 <link rel="import" href="../shared-styles.html">
-<link rel="import" href="./kataminio-figure-toolbar.html">
+<link rel="import" href="katamino-figure-toolbar.html">
 
 <dom-module id="katamino-figure">
     <template>
@@ -9,7 +12,6 @@
                 display: block;
                 line-height: 0;
                 position: absolute;
-                transition: transform .2s ease-in-out;
                 pointer-events:none;
 
             }
@@ -21,7 +23,8 @@
                 /*box-shadow: 10px 10px 5px #888888;*/
                 overflow: visible;
                 position: absolute;
-
+                transition: transform .2s ease-in-out;
+                transform-origin: center center;
             }
 
             svg rect {
@@ -54,14 +57,6 @@
                     <feMergeNode in="SourceGraphic"/> <!-- this contains the element that the filter is applied to -->
                 </feMerge>
             </filter>
-            <template id="figure" is="dom-repeat" items="[[spec.shape]]" index-as="idx1">
-                <template is="dom-repeat" items="[[item]]" index-as="idx2">
-                    [[idx1]]
-                    <template is="dom-if" if="{{item}}">
-                        <rect style="filter:url(#dropshadow)" x$="[[_getPos(idx2)]]" y$="[[_getPos(idx1)]]" width$="[[gridSpec.wide]]" height$="[[gridSpec.wide]]" fill$="[[spec.color]]"/>
-                    </template>
-                </template>
-            </template>
 
         </svg>
 
@@ -70,30 +65,6 @@
     </template>
 
     <script>
-
-        // START SVG HACK
-        var doc = document.currentScript.ownerDocument;
-        var root = doc.querySelector('dom-module > template').content;
-        var templates = root.querySelectorAll('svg template');
-        var el, template, attribs, attrib, count, child, content;
-        for (var i=0; i<templates.length; i++) {
-            el = templates[i];
-            template = el.ownerDocument.createElement('template');
-            el.parentNode.insertBefore(template, el);
-            attribs = el.attributes;
-            count = attribs.length;
-            while (count-- > 0) {
-                attrib = attribs[count];
-                template.setAttribute(attrib.name, attrib.value);
-                el.removeAttribute(attrib.name);
-            }
-            el.parentNode.removeChild(el);
-            content = template.content;
-            while ((child = el.firstChild)) {
-                content.appendChild(child);
-            }
-        }
-        // END SVG HACK
 
 
         class KataminoFigure extends Polymer.Element {
@@ -108,6 +79,14 @@
                     gridStockSpec: Object,
                     dndSpec: Object,
                     rotation: {
+                        type: Number,
+                        value:0
+                    },
+                    gridWidth: {
+                        type: Number,
+                        value:0
+                    },
+                    gridHeight: {
                         type: Number,
                         value:0
                     },
@@ -138,6 +117,25 @@
                 super.ready();
                 this._setDragAndDrop();
                 this._posToolbar();
+                this._drawShape(this.spec.shape);
+                console.log('ready');
+            }
+
+            _drawShape(shape){
+                // remove whats there
+                var rects=this.$.svg.querySelectorAll('rect');
+                for (var i = 0; i < rects.length; ++i) {
+                    this.$.svg.removeChild(rects[i]);
+                }
+                for(var i1 = 0; i1< shape.length;i1++){
+                    for(var i2=0; i2<shape[i1].length;i2++) {
+                        if (shape[i1][i2] === 1) {
+                            this.$.svg.innerHTML += '<rect style="filter:url(#dropshadow)" x="' + this._getPos(i2) +
+                                '" y="' + this._getPos(i1) + '" width="' + this.gridSpec.wide + '" height="' + this.gridSpec.wide + '" fill="' + this.spec.color + '"/>';
+
+                        }
+                    }
+                }
             }
 
             _specChanged() {
@@ -147,7 +145,7 @@
 
             _hasShadowChanged(shadow){
                 var rects = this.$.svg.querySelectorAll('rect');
-                for (i = 0; i < rects.length; ++i) {
+                for (var i = 0; i < rects.length; ++i) {
                     var rect = rects[i];
 
                     if( shadow ) {
@@ -218,7 +216,7 @@
                 var self = this;
 
                 var rects = self.$.svg.querySelectorAll('rect');
-                for (i = 0; i < rects.length; ++i) {
+                for (var i = 0; i < rects.length; ++i) {
                     var rect = rects[i];
 
                     rect.addEventListener("mouseover", function () {
@@ -233,7 +231,7 @@
             _flipFigure(){
                 var self = this, shape = self.spec.shape, newShape=[];
 
-                self.style.transform = 'scaleX(-1)';
+                self.$.svg.style.transform = 'scaleX(-1)';
                 for(var i = 0; i< shape.length;i++){
                     newShape.push(shape[i].reverse() );
                 }
@@ -243,7 +241,7 @@
             _rotateFigure(){
                 var self = this, shape = self.spec.shape, newShape=[];
 
-                self.style.transform = 'rotate(90deg)';
+                self.$.svg.style.transform = 'rotate(90deg)';
 
                 for(var y = shape.length-1;y>=0;y--){
                     for(var i = 0; i< shape[0].length;i++){
@@ -274,19 +272,16 @@
                     self.set('spec',self.spec);
 
 
-                    var x= self.style.transition;
-                    self.style.transition = 'transform 0s';
-                    self.style.transform = '';
+                    var x= self.$.svg.style.transition;
+                    self.$.svg.style.transition = 'transform 0s';
+                    self.$.svg.style.transform = '';
                     setTimeout(function(){
-                        self.style.transition=x;
+                        self.$.svg.style.transition=x;
                     },200);
 
 
                     // refresh figure
-                    self.$.figure.items = null;
-                    self.$.figure.render();
-                    self.$.figure.items = newShape;
-                    self.$.figure.render();
+                    self._drawShape(newShape);
                     self._setRectEvents();
                     self._refresh();
 
@@ -318,9 +313,6 @@
                     }
 
                   self._posToolbar();
-
-
-
                 },200);
 
 
