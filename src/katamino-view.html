@@ -18,7 +18,7 @@
                 padding: 10px;
             }
 
-            .card{
+            .card {
                 position: relative;
             }
 
@@ -30,13 +30,13 @@
                 @apply --layout-flex;
             }
 
-            katamino-figure{
-                top:0px;
-                left:16px;
+            katamino-figure {
+                top: 0px;
+                left: 16px;
 
             }
 
-            #grid{
+            #grid {
                 margin-bottom: 40px;
             }
 
@@ -58,10 +58,12 @@
                             </template>
                         </paper-listbox>
                     </paper-dropdown-menu>
-                    <paper-input id="nrOfRows" min="3" max="12" on-change="_changeNumberOfRows" on-click="_changeNumberOfRows" value="{{gridSpec.nrOfRows}}" label="Number of rows" type="number"></paper-input>
+                    <paper-input id="nrOfRows" min="3" max="12" on-change="_changeNumberOfRows"
+                                 on-click="_changeNumberOfRows" value="{{gridSpec.nrOfRows}}" label="Number of figures"
+                                 type="number"></paper-input>
                     <!--<paper-input value="{{gridSpec.wide}}" label="Field size" type="number"></paper-input>-->
 
-                    <paper-button on-click="_solve" raised class="indigo">solve</paper-button>
+                    <paper-button on-click="_solve" raised class="indigo">solve</paper-button> It may take some time if more than 5 figures
 
                 </div>
             </div>
@@ -71,7 +73,9 @@
 
 
             <template id="figures" is="dom-repeat">
-                <katamino-figure on-click="_figureClicked" style$="[[_figureStyle(index)]]" dnd-spec="[[dndSpec]]" grid-stock-spec="[[gridStockSpec]]" grid-spec="[[gridSpec]]" spec="[[_getFigure(item)]]"></katamino-figure>
+                <katamino-figure on-click="_figureClicked" style$="[[_figureStyle(index)]]" dnd-spec="[[dndSpec]]"
+                                 grid-stock-spec="[[gridStockSpec]]" grid-spec="[[gridSpec]]"
+                                 spec="[[_getFigureModel(item)]]"></katamino-figure>
             </template>
 
 
@@ -80,7 +84,7 @@
 
 
     <script>
-        var nrOfRowsBefore=3;
+        var nrOfRowsBefore = 3;
         class KataminoView extends Polymer.Element {
             static get is() {
                 return 'katamino-view';
@@ -126,209 +130,273 @@
                             {
                                 color: "#0000ff",
                                 shape: [[1, 1, 0],
-                                        [0, 1, 0],
-                                        [0, 1, 1]]
+                                    [0, 1, 0],
+                                    [0, 1, 1]]
                             },
                             {
                                 color: "#00ff00",
                                 shape: [[0, 1, 0],
-                                        [1, 1, 1],
-                                        [0, 1, 0]]
+                                    [1, 1, 1],
+                                    [0, 1, 0]]
                             },
                             {
                                 color: "#00fff0",
                                 shape: [[1, 1, 1, 1],
-                                        [0, 1, 0, 0]]
+                                    [0, 1, 0, 0]]
                             },
                             {
                                 color: "#009109",
                                 shape: [[0, 1, 1],
-                                        [1, 1, 0],
-                                        [1, 0 , 0]]
+                                    [1, 1, 0],
+                                    [1, 0, 0]]
                             },
-                            { /* 5 */
+                            {
+                                /* 5 */
                                 color: "#ff00e1",
                                 shape: [[1, 1, 0],
-                                        [1, 1, 1]]
+                                    [1, 1, 1]]
                             },
                             {
                                 color: "#ff8c00",
                                 shape: [[1, 0, 0],
-                                        [1, 1, 1],
-                                        [0, 1, 0]]
+                                    [1, 1, 1],
+                                    [0, 1, 0]]
                             },
                             {
                                 color: "#020091",
                                 shape: [[1, 1, 1],
-                                        [0, 1, 0],
-                                        [0, 1, 0]]
+                                    [0, 1, 0],
+                                    [0, 1, 0]]
                             },
                             {
                                 color: "#423fff",
-                                shape: [[ 0,1, 1, 1],
-                                        [1, 1, 0, 0 ]]
+                                shape: [[0, 1, 1, 1],
+                                    [1, 1, 0, 0]]
                             },
                             {
                                 color: "#9492fc",
                                 shape: [[1, 1, 1],
-                                        [1, 0, 0 ],
-                                        [1, 0, 0 ]]
+                                    [1, 0, 0],
+                                    [1, 0, 0]]
                             },
                             {
                                 color: "#f6ff00",
                                 shape: [[1, 1],
-                                        [0, 1 ],
-                                        [1, 1 ]]
+                                    [0, 1],
+                                    [1, 1]]
                             },
                             {
                                 color: "#f90000",
                                 shape: [[1, 0, 0, 0],
-                                        [1, 1, 1, 1 ]]
+                                    [1, 1, 1, 1]]
                             }
                         ]
                     },
-                    selectedGame:{
-                        type:Object
+                    selectedGame: {
+                        type: Object
                     },
-                    games:{
+                    games: {
                         type: Array,
                         value: [{
                             name: "A. The small slam",
-                            figures: [11,3,7,5,4,1,9,8]
+                            figures: [11, 3, 7, 5, 4, 1, 9, 8]
                         },
-                        {
-                            name: "B. The small slam",
-                            figures: [8,5,10,11,1,3,7,4]
-                        }]
+                            {
+                                name: "B. The small slam",
+                                figures: [8, 5, 10, 11, 1, 3, 7, 4]
+                            }]
                     }
                 }
             }
 
-            _solve(){
-                var self=this,
-                    gridTop=this.$.grid.offsetTop,
-                    gridLeft=this.$.gridStock.offsetLeft,
+            _solve() {
+                var self = this,
+                    gridTop = this.$.grid.offsetTop,
+                    gridLeft = this.$.gridStock.offsetLeft,
                     figuresDom = Polymer.dom(this.root).querySelectorAll('katamino-figure'),
-                    figures= this._getFigures(),
+                    figures = this._getSelectedFigures(),
                     fields = [];
 
 
-                var clearFields = function(){
-                    fields = [];
-                    for(var i = 0;i<self.gridSpec.nrOfRows;i++){
-                        fields.push([-1,-1,-1,-1,-1]);
+                var clearFields = function (idx) {
+                    if (idx) {
+                        for (var y = 0; y < fields.length; y++) {
+                            for (var x = 0; x < fields[y].length; x++) {
+                                if (fields[y][x] === idx) {
+                                    fields[y][x] = -1;
+                                }
+                            }
+                        }
+                    } else {
+                        fields = [];
+                        for (var i = 0; i < self.gridSpec.nrOfRows; i++) {
+                            fields.push([-1, -1, -1, -1, -1]);
+                        }
                     }
                 }
 
-
-                var checkFields = function(xoffset,yoffset,idx,shape){
-
-                    for( var y=0; y<shape.length;y++){
-                        for( var x=0; x<shape[0].length;x++){
-                            if( shape[y][x]!=0 ){
-                                if(fields[yoffset+y][xoffset+x]!=-1 ){
+                var checkFields = function (xoffset, yoffset, shape) {
+                    for (var y = 0; y < shape.length; y++) {
+                        for (var x = 0; x < shape[0].length; x++) {
+                            if (shape[y][x] != 0) {
+                                if (fields[yoffset + y][xoffset + x] != -1) {
                                     return false;
                                 }
                             }
                         }
                     }
+                    return true;
+                }
 
-                    for( var y=0; y<shape.length;y++){
-                        for( var x=0; x<shape[0].length;x++){
-                            if( shape[y][x]!=0 ) {
+                var setFields = function (xoffset, yoffset, idx, shape) {
+                    for (var y = 0; y < shape.length; y++) {
+                        for (var x = 0; x < shape[0].length; x++) {
+                            if (shape[y][x] != 0) {
                                 fields[yoffset + y][xoffset + x] = idx;
                             }
                         }
                     }
-
-
-                    return true;
                 }
 
 
-                /* visualize */
+                var findPos = function (idx, pos) {
 
-                var visualizeCount=0,visualize = function(x,y,r,idx) {
-                    var t = gridTop + (self.gridSpec.wide * y);
-                    var l = gridLeft + (self.gridSpec.wide * x);
-                    setTimeout(function () {
-                        figuresDom[idx].style.transform = 'rotate('+(r*90)+'deg)';
-                       // figuresDom[idx]._refreshFigure(shape);
+                    //var shape = self._getFigureModel(figures[idx]).shape;
+                    var shape = figures[idx].shape;
 
-                        figuresDom[idx].style.top = t + 'px';
-                        figuresDom[idx].style.left = l + 'px';
-                    }, 500 * visualizeCount);
-                    visualizeCount++;
-                }
+                    for (var f = pos.f; f < 2; f++) {
 
-                var findPos= function(idx, startX, startY, startR){
+                        for (var r = pos.r; r < 4; r++) {
 
-                    if( !startX ){
-                        startX = 0;
-                    }
-                    if( !startY ){
-                        startY = 0;
-                    }
-                    if( !startR ){
-                        startR = 0;
-                    }
+                            var dw = 5 - shape[0].length + 1,
+                                dh = self.gridSpec.nrOfRows - shape.length + 1
 
+                            for (var x = pos.x; x < dw; x++) {
+                                for (var y = pos.y; y < dh; y++) {
+                                    if (checkFields(x, y, shape)) {
+                                        visualize(x, y, idx, shape);
+                                        setFields(x, y, idx, shape)
 
-                    var shape = self._getFigure(figures[idx]).shape;
+                                        // return next position to check
+                                        if (y + 1 < dh) {
+                                            return {x: x, y: y + 1, r: r, f: f};
+                                        } else if (x + 1 < dw) {
+                                            return {x: x + 1, y: 0, r: r, f: f};
+                                        } else {
+                                            return {x: x + 1, y: y + 1, r: r, f: f};
+                                        }
 
-                    for( var r=0;r<4;r++) {
+                                    }
+                                }
+                                pos.y = 0;
+                            }
+                            pos.x = 0;
 
-                        var dw = 5-shape[0].length+1,
-                            dh = self.gridSpec.nrOfRows-shape.length+1
+                            // rotate shape 90°
+                            var newShape = [];
+                            for (var y = shape.length - 1; y >= 0; y--) {
+                                for (var i = 0; i < shape[0].length; i++) {
 
-                        for (var x = startX; x < dw; x++) {
-                            for (var y = startY; y < dh; y++) {
-                                if (checkFields(x, y, idx, shape)) {
-                                    visualize(x, y, r, idx);
-                                    return {x: x, y: y, r: r};
+                                    if (newShape.length <= i) {
+                                        newShape.push([]);
+                                    }
+                                    newShape[i].push(shape[y][i]);
                                 }
                             }
-                            startY = 0;
+                            figures[idx].shape = shape = newShape;
                         }
-
-                        var newShape=[];
-                        for(var y = shape.length-1;y>=0;y--){
-                            for(var i = 0; i< shape[0].length;i++){
-
-                                if( newShape.length<=i){
-                                    newShape.push([]);
-                                }
-                                newShape[i].push(shape[y][i]);
-                            }
+                        pos.r = 0;
+                        // flip
+                        var newShape = [];
+                        for (var i = 0; i < shape.length; i++) {
+                            newShape.push(shape[i].reverse());
                         }
-                        shape=newShape;
-                        console.log(shape)
+                        figures[idx].shape = shape = newShape;
                     }
                     return false;
                 };
 
+                var findPosWhile = function (idx) {
+                    if (idx >= figures.length) {
+                        return true;
+                    }
 
+                    var pos = {x: 0, y: 0, r: 0, f: 0};
+                    while (pos = findPos(idx, pos)) {
+                        var newpos = findPosWhile(idx + 1);
 
-
-                var pos = {x:0,y:0}, oo=0;
-                clearFields();
-                while( pos = findPos(0,pos.x, pos.y) ){
-                    oo++;
-                    pos.y++;
-                    var haspos=false;
-
-                    for(var i=1;i<figures.length;i++){
-                        haspos = findPos(i);
-                        if( !haspos )
+                        if (newpos) {
                             break;
+                        }
+                        clearFields(idx);
                     }
-                    if(haspos) {
-                        break;
-                    }
-                    clearFields();
+                    return pos;
+                };
 
+
+                /* visualize */
+                var maxStepsToVisualizate = 50,
+                    visualizeSteps = [],nrOfSteps=0,
+                    visualize = function (x, y, idx, shape) {
+                        nrOfSteps++;
+                        if( visualizeSteps.length > 5000000){
+                            visualizeSteps.slice(0,1000000)
+                        }
+                        visualizeSteps.push({x: x, y: y, idx: idx, shape: shape});
+                    },
+                    performeVisualize = function(step){
+                        //console.log(step);
+
+                        var t = gridTop + (self.gridSpec.wide * step.y);
+                        var l = gridLeft + (self.gridSpec.wide * step.x);
+                        setTimeout(function () {
+                            //figuresDom[idx].$.svg.style.transform = 'rotate('+(r*90)+'deg)';
+
+                            figuresDom[step.idx].set("spec.shape", step.shape);
+                            figuresDom[step.idx]._drawShape(step.shape);
+
+                            //figuresDom[idx]._rotateFigure
+                            // figuresDom[idx]._refreshFigure(shape);
+
+                            figuresDom[step.idx].style.top = t + 'px';
+                            figuresDom[step.idx].style.left = l + 'px';
+                            //figuresDom[idx]._posToolbar();
+                        }, 100 * i);
+                    },
+                    newVisualizeSteps = [];
+
+
+                clearFields();
+                findPosWhile(0);
+                if (visualizeSteps.length <= maxStepsToVisualizate) {
+                    newVisualizeSteps = visualizeSteps;
+                }else{
+                    var idxsCount={},totalCount=0, stepsPerFigure=Math.floor(maxStepsToVisualizate/figures.length);
+                    for(var i =visualizeSteps.length-1;i>=0;i--){
+                        if( totalCount >= maxStepsToVisualizate){
+                            break;
+                        }
+
+                        var step=visualizeSteps[i];
+                        if( !idxsCount[step.idx] ){
+                            idxsCount[step.idx]=0;
+                        }
+
+                        if( idxsCount[step.idx] <=stepsPerFigure  ){
+                            idxsCount[step.idx]++;
+                            totalCount++;
+                            newVisualizeSteps.unshift(visualizeSteps[i]);
+                        }
+                    }
                 }
-                console.log(pos)
+
+                console.log("total steps = "+nrOfSteps);
+
+
+
+                for (var i = 0; i < newVisualizeSteps.length; i++) {
+                    performeVisualize(newVisualizeSteps[i]);
+                }
 
 
             }
@@ -338,70 +406,81 @@
                 if (selectedItem && selectedItem.item) {
                     this.set('selectedGame', selectedItem.item);
 
-                    console.log("game selected",selectedItem.item.name);
+                    console.log("game selected", selectedItem.item.name);
 
-                    this.$.nrOfRows.setAttribute('max',this.selectedGame.figures.length);
+                    this.$.nrOfRows.setAttribute('max', this.selectedGame.figures.length);
 
-                    this.set('gridSpec.nrOfRows',3);
+                    this.set('gridSpec.nrOfRows', 3);
                     //this.$.nrOfRows.updateValueAndPreserveCaret(3);
 
 
                     // hack to get dom-repeat refreshed
-                    this.$.figures.items=null;
+                    this.$.figures.items = null;
                     this.$.figures.render();
 
 
-                    this.$.figures.items= this._getFigures();
+                    this.$.figures.items = this._getSelectedFiguresIndexs();
                     this.$.figures.render();
                     this._calculateOffset();
                 }
             }
 
-            _getFigure(idx){
+            _getFigureModel(idx) {
                 return this.figures[idx];
             }
 
-            _getFigures(){
-                if( this.selectedGame ) {
+            _getSelectedFiguresIndexs() {
+                if (this.selectedGame) {
                     var a = [];
-                    for(var i=0;i<this.gridSpec.nrOfRows;i++){
+                    for (var i = 0; i < this.gridSpec.nrOfRows; i++) {
                         a.push(this.selectedGame.figures[i]);
                     }
                     return a;
                 }
             }
 
-            _figureStyle(idx){
-                var figures= this._getFigures();
-
-                var figureOffsetLeft=0, figureOffsetTop=0, item, figureWidth, clientWidth=this.$.gridStock.shadowRoot.querySelector('svg').clientWidth;
-                for(var i=0;i<=idx;i++){
-                    item = this.figures[figures[i]];
-                    figureWidth=item.shape[0].length*this.gridSpec.wide;
-
-                    if( (figureOffsetLeft+figureWidth+this.gridSpec.wide) > clientWidth){
-                        figureOffsetLeft=0;
-                        figureOffsetTop+=4*this.gridSpec.wide;
+            _getSelectedFigures() {
+                if (this.selectedGame) {
+                    var a = [];
+                    for (var i = 0; i < this.gridSpec.nrOfRows; i++) {
+                        a.push(this.figures[this.selectedGame.figures[i]]);
                     }
-                    if( i<idx )
-                        figureOffsetLeft+= figureWidth+this.gridSpec.wide;
+                    return a;
+                }
+            }
+
+            _figureStyle(idx) {
+                var figures = this._getSelectedFiguresIndexs();
+
+                var figureOffsetLeft = 0, figureOffsetTop = 0, item, figureWidth,
+                    clientWidth = this.$.gridStock.shadowRoot.querySelector('svg').clientWidth;
+                for (var i = 0; i <= idx; i++) {
+                    item = this.figures[figures[i]];
+                    figureWidth = item.shape[0].length * this.gridSpec.wide;
+
+                    if ((figureOffsetLeft + figureWidth + this.gridSpec.wide) > clientWidth) {
+                        figureOffsetLeft = 0;
+                        figureOffsetTop += 4 * this.gridSpec.wide;
+                    }
+                    if (i < idx)
+                        figureOffsetLeft += figureWidth + this.gridSpec.wide;
 
                 }
 
 
-                var style= 'top:'+(this.$.gridStock.offsetTop+figureOffsetTop)+'px;left:'+(figureOffsetLeft+16)+'px';
+                var style = 'top:' + (this.$.gridStock.offsetTop + figureOffsetTop) + 'px;left:' + (figureOffsetLeft + 16) + 'px';
 
 
                 return style;
             }
 
 
-            _figureClicked(e){
+            _figureClicked(e) {
                 /*var figures = Polymer.dom(this.root).querySelectorAll('katamino-figure');
-                for(var i = 0; i< figures.length; i++){
-                    figures[i].set('selected',false);
-                }
-                e.target.set('selected',true);*/
+                 for(var i = 0; i< figures.length; i++){
+                 figures[i].set('selected',false);
+                 }
+                 e.target.set('selected',true);*/
 
             }
 
@@ -411,39 +490,43 @@
                 this._calculateOffset();
             }
 
-            _changeNumberOfRows(){
+            _changeNumberOfRows() {
 
-                if( nrOfRowsBefore === this.gridSpec.nrOfRows ){
+                if (nrOfRowsBefore === this.gridSpec.nrOfRows) {
                     return false;
                 }
-                if( this.gridSpec.nrOfRows> this.selectedGame.figures.length){
-                    this.gridSpec.nrOfRows=this.selectedGame.figures.length;
+                if (this.gridSpec.nrOfRows > this.selectedGame.figures.length) {
+                    this.gridSpec.nrOfRows = this.selectedGame.figures.length;
                     return false;
                 }
                 this.$.nrOfRows.disabled = true;
 
-                nrOfRowsBefore=this.gridSpec.nrOfRows;
+                nrOfRowsBefore = this.gridSpec.nrOfRows;
 
 
                 var offset = this.dndSpec.offsetStockTop;
                 this._calculateOffset();
                 var figures = Polymer.dom(this.root).querySelectorAll('katamino-figure');
-                for(var i = 0; i< figures.length; i++){
+                for (var i = 0; i < figures.length; i++) {
                     var figure = figures[i];
-                    figure.style.top = parseInt(figure.style.top)+(this.dndSpec.offsetStockTop-offset)+'px';
-                    figure._refresh();
+                    figure.style.top = parseInt(figure.style.top) + (this.dndSpec.offsetStockTop - offset) + 'px';
+                    figure._refreshTargets();
                 }
 
-                this.$.figures.items= this._getFigures();
+                this.$.figures.items = this._getSelectedFiguresIndexs();
                 this.$.figures.render();
 
 
                 this.$.nrOfRows.disabled = false;
             }
 
-            _calculateOffset(){
-                this.set("dndSpec",{offsetLeft: this.$.grid.getBoundingClientRect().left, offsetTop: this.$.grid.getBoundingClientRect().top,
-                    offsetStockLeft: this.$.gridStock.getBoundingClientRect().left, offsetStockTop: this.$.gridStock.getBoundingClientRect().top});
+            _calculateOffset() {
+                this.set("dndSpec", {
+                    offsetLeft: this.$.grid.getBoundingClientRect().left,
+                    offsetTop: this.$.grid.getBoundingClientRect().top,
+                    offsetStockLeft: this.$.gridStock.getBoundingClientRect().left,
+                    offsetStockTop: this.$.gridStock.getBoundingClientRect().top
+                });
             }
 
             constructor() {
